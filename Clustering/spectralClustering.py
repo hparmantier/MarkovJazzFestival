@@ -37,6 +37,3 @@ def main():
     G = nx.from_numpy_matrix(recc_matrix)
     labels = cluster.spectral_clustering(recc_matrix, n1, eigen_solver='arpack')
     draw_temporal_labels(labels)
-
-
-main()
