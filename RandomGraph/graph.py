@@ -2,17 +2,20 @@ import numpy as np
 import networkx as nx
 import librosa
 
+
 def affinity_matrix(song):
     y, sr = librosa.load(song)
     oenv = librosa.onset.onset_strength(y=y, sr=sr, hop_length=512)
     tempo = librosa.beat.estimate_tempo(oenv, sr=sr, hop_length=512)
-    print(tempo)
 
     bps = tempo/60 
     beat_length = int(np.round(sr/bps)) # number of samples in a beat
 
     l = y.shape[0]
     border = np.ceil(0.1*beat_length) # we will use it to attenuate borders of each sample
+
+    # tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr, hop_length=512)
+    # beat_samples = librosa.frames_to_samples(beat_frames)
 
     #Attenuation of borders of samples
 
@@ -27,14 +30,26 @@ def affinity_matrix(song):
 
     mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=12, hop_length=beat_length)
     chroma = librosa.feature.chroma_stft(y=y, sr=sr, hop_length=beat_length)
-    print(mfcc.shape)
-    print(chroma.shape)
+
     feature = np.concatenate((mfcc, chroma), axis=0)
-    print(feature.shape)
 
     R = librosa.segment.recurrence_matrix(feature, mode='affinity', width=5, sym=True)
 
+    for i in range(0, len(R)):
+        j = R[i].argmax()
+        m = R[i][j]
+        R[i,:] = 0
+        if(m>0.5):
+            R[i][i] = 1.5-m
+            R[i][j] = m-0.5
+            R[j][i] = m-0.5
+
+        else:
+            R[i]
+            R[j][i] = 1
+
     return R
+
 
 def build_graph(recc_matrix):
     ########################################RECURRENCE MATRIX USING LIBROSA##########################################
@@ -53,3 +68,14 @@ def build_graph(recc_matrix):
     return G
     #labels = cluster.spectral_clustering(recc_matrix, 3, eigen_solver='arpack')
     #draw_temporal_labels(labels)
+
+def show_matrix(R):
+    R = -(R-1)
+    import matplotlib.pylab as plt
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    ax.set_aspect('equal')
+    plt.imshow(R, cmap=plt.cm.gray)
+    plt.xlabel('Samples (beats)')
+    plt.ylabel('Samples (beats)')
+    plt.show()
