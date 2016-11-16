@@ -34,19 +34,22 @@ def affinity_matrix(song):
     feature = np.concatenate((mfcc, chroma), axis=0)
 
     R = librosa.segment.recurrence_matrix(feature, mode='affinity', width=5, sym=True)
-
+    c = 0
     for i in range(0, len(R)):
         j = R[i].argmax()
         m = R[i][j]
-        R[i,:] = 0
+        R[i,range(i)] = 0
+        R[range(i),i] = 0
         if(m>0.5):
             R[i][i] = 1.5-m
             R[i][j] = m-0.5
             R[j][i] = m-0.5
 
         else:
-            R[i]
-            R[j][i] = 1
+            R[i][i] = 1
+
+    R[0][-1] = 1
+    R[-1][0] = 1
 
     return R
 
@@ -70,12 +73,12 @@ def build_graph(recc_matrix):
     #draw_temporal_labels(labels)
 
 def show_matrix(R):
-    R = -(R-1)
+    R_show = -(R-1)
     import matplotlib.pylab as plt
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     ax.set_aspect('equal')
-    plt.imshow(R, cmap=plt.cm.gray)
+    plt.imshow(R_show, cmap=plt.cm.gray)
     plt.xlabel('Samples (beats)')
     plt.ylabel('Samples (beats)')
     plt.show()
