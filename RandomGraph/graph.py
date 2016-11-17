@@ -35,22 +35,29 @@ def affinity_matrix(song):
 
     R = librosa.segment.recurrence_matrix(feature, mode='affinity', width=5, sym=True)
     c = 0
+    argmaxs = [R[i].argmax() for i in range(0, len(R))]
+    maxs = [R[i][argmaxs[i]] for i in range(0, len(R))]
+
+    R2 = np.zeros((len(R), len(R)))
+
     for i in range(0, len(R)):
-        j = R[i].argmax()
-        m = R[i][j]
-        R[i,:i] = 0
-        R[:i,i] = 0
+        # j = R[i].argmax()
+        # m = R[i][j]
+        # R[i,:i+1] = 0
+        # R[:i+1,i] = 0
+        j = argmaxs[i]
+        m = maxs[i]
         if(m>0.5):
-            R[i][i] = 1.5-m
-            R[i][j] = m-0.5
-            R[j][i] = m-0.5
+            R2[i][i] = 1.5-m
+            R2[i][j] = m-0.5
+            R2[j][i] = m-0.5
 
         else:
-            R[i][i] = 1
+            R2[i][i] = 1
 
-    R[-1][0] = 1
+    R2[-1][0] = 1
 
-    return R
+    return R2
 
 
 def build_graph(recc_matrix):
@@ -66,6 +73,8 @@ def build_graph(recc_matrix):
     # #plt.title('Binary recurrence (connectivity)')
     # #plt.show()
     ########################################SPECTRAL CLUSTERING ON recurrence.npy####################################
+    dt = [('weight', float)]
+    recc_mat=np.matrix(recc_matrix,dtype=dt)
     G = nx.from_numpy_matrix(recc_matrix)
     return G
     #labels = cluster.spectral_clustering(recc_matrix, 3, eigen_solver='arpack')
