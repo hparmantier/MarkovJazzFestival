@@ -38,8 +38,8 @@ def affinity_matrix(song):
     for i in range(0, len(R)):
         j = R[i].argmax()
         m = R[i][j]
-        R[i,range(i)] = 0
-        R[range(i),i] = 0
+        R[i,:i] = 0
+        R[:i,i] = 0
         if(m>0.5):
             R[i][i] = 1.5-m
             R[i][j] = m-0.5
@@ -48,7 +48,6 @@ def affinity_matrix(song):
         else:
             R[i][i] = 1
 
-    R[0][-1] = 1
     R[-1][0] = 1
 
     return R
