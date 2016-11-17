@@ -41,19 +41,15 @@ def affinity_matrix(song):
     R2 = np.zeros((len(R), len(R)))
 
     for i in range(0, len(R)):
-        # j = R[i].argmax()
-        # m = R[i][j]
-        # R[i,:i+1] = 0
-        # R[:i+1,i] = 0
         j = argmaxs[i]
         m = maxs[i]
         if(m>0.5):
             R2[i][i] = 1.5-m
             R2[i][j] = m-0.5
-            R2[j][i] = m-0.5
+            #R2[j][i] = m-0.5
 
         else:
-            R2[i][i] = 1
+            R2[i][i] = 1 
 
     R2[-1][0] = 1
 
