@@ -3,6 +3,7 @@ import sys
 helper = '/home/hparmantier/Montreux Analytics/Scripts'
 sys.path.append(os.path.abspath(helper))
 import Neo4jInterface.read_db as read
+import numpy as np
 import RandomGraph.RandomStep as walker
 from pydub import AudioSegment
 from pydub.playback import play
@@ -35,12 +36,25 @@ def print_path(path, file):
 def play_permutation(audio, permut, beat_nb):
 	extension = get_format(audio)
 	song = AudioSegment.from_file(audio, format=extension)
-	beat_size = math.ceil(len(song) / beat_nb)
+	samples = song.get_array_of_samples()
+	beat_size = math.ceil(len(samples) / beat_nb)
 	#beats = zip(*[iter(song)]*beat_size)
-	beats = [song[i:i+beat_size] for i in range(0,len(song),beat_size)]
+	beats = [song[i:i+beat_size] for i in range(0,len(samples),beat_size)]
 	song_permuted = [beats[permut[i]] for i in range(len(permut))]
 	#return song_permuted
-	return [val for beat in song_permuted for val in beat]
+	#return [val for beat in song_permuted for val in beat]
+
+def play_permutation_bis(audio, permut, beat_nb):
+	extension = get_format(audio)
+	song = AudioSegment.from_file(audio, format=extension)
+	samples = song.get_array_of_samples()
+	beat_size = math.ceil(len(samples) / beat_nb)
+	#beats = zip(*[iter(song)]*beat_size)
+	beats = [samples[i:i+beat_size] for i in range(0,len(samples),beat_size)]
+	song_permuted = [beats[permut[i]] for i in range(len(permut))]
+	#new_samples = song_permuted.tostring()
+	return song._spawn(np.asarray(song_permuted).tostring())
+
 
 
 def get_format(audio):

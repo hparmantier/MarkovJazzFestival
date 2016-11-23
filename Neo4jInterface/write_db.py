@@ -30,6 +30,7 @@ def create_rel(graph_db,u,v,w):
     cypher.execute(statement, i1=u, i2=v, m="Creep", w=w) ## add weight in string format which then converted to float in db
 
 
+##TODO later put links back to v (remove next) implementation made to easily print markov chain
 def intra_neo_from_nx(nx,graph_db):
     print('###########Nodes creations #############')
     for n in nx : create_node(graph_db, n, "Creep") ## str(n) -> n
@@ -39,5 +40,6 @@ def intra_neo_from_nx(nx,graph_db):
         for v,eattr in nbrsdict.items():
             if 'weight' in eattr:
                 weight = eattr['weight']
+                next = 0 if (v == len(nx)-1) else v+1
                 print("("+str(u)+","+str(v)+") similarity := "+str(weight))
-                create_rel(graph_db,str(u),str(v),str(weight)) ## str(u), str(v) -> u,v
+                create_rel(graph_db,str(u),str(next),str(weight)) ## str(u), str(v) -> u,v

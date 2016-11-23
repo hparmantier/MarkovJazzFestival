@@ -5,6 +5,7 @@ p_file = '/home/hparmantier/Montreux Analytics/Media/distr_choice.txt'
 f = open(p_file, 'w')
 
 ##TODO remove write in file
+##IMPLEMENTATION MADE FOR LINKS U->U AND NOT TEMPORAL U->U+1
 def make_step(G, current):
     print(current)
     edges = list(filter(lambda e: e[0]==current, G.edges(current, data=True)))
@@ -35,6 +36,7 @@ def make_step(G, current):
     #toint = int(chosen[0])
     #print(toint)
     return 0 if chosen == last_node else  int(chosen + 1)
+
 
 def make_n_step(G, current, n):
     path = []
