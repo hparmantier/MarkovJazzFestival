@@ -1,14 +1,15 @@
 import os
 import sys
-helper = '/home/hparmantier/Montreux Analytics/Scripts'
-sys.path.append(os.path.abspath(helper))
-import Neo4jInterface.read_db as read
+#helper = '/home/hparmantier/Montreux Analytics/Scripts'
+#sys.path.append(os.path.abspath(helper))
+#import Neo4jInterface.read_db as read
 import numpy as np
-import RandomGraph.RandomStep as walker
-from pydub import AudioSegment
-from pydub.playback import play
+import RandomStep as walker
+#from pydub import AudioSegment
+#from pydub.playback import play
 import math
 import os
+import librosa
 
 
 
@@ -55,6 +56,17 @@ def play_permutation_bis(audio, permut, beat_nb):
 	#new_samples = song_permuted.tostring()
 	return song._spawn(np.asarray(song_permuted).tostring())
 
+def play_path(song, path):
+	y, sr = librosa.load(song)
+	oenv = librosa.onset.onset_strength(y=y, sr=sr, hop_length=512)
+	tempo = librosa.beat.estimate_tempo(oenv, sr=sr, hop_length=512)
+	bps = tempo/60
+	beat_length = int(np.round(sr/bps))
+	y_perm = y
+	for i in range(0, int(np.floor(len(y)/beat_length))):
+		y_perm[i*beat_length:(i+1)*beat_length] = y[path[i]*beat_length:(path[i]+1)*beat_length]
+
+	return y_perm
 
 
 def get_format(audio):

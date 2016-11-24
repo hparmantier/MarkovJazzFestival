@@ -46,7 +46,6 @@ def affinity_matrix(song):
         if(m>0.5):
             R2[i][i] = 1.5-m
             R2[i][j] = m-0.5
-            #R2[j][i] = m-0.5
 
         else:
             R2[i][i] = 1 

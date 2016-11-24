@@ -1,7 +1,7 @@
 from numpy.random import choice
 import networkx as nx
 
-p_file = '/home/hparmantier/Montreux Analytics/Media/distr_choice.txt'
+p_file = '../Data/distr_choice.txt'
 f = open(p_file, 'w')
 
 ##TODO remove write in file
@@ -18,20 +18,20 @@ def make_step(G, current):
     print(neighbors)
     print("distribution:")
     print(pr)
-    f.write("current:\n")
-    f.write(str(current)+"\n")
-    f.write("neighbors:\n")
-    f.write(','.join(map(lambda i: str(i),neighbors))+"\n")
-    f.write("distribution:\n")
-    f.write(','.join(map(lambda i: str(i),pr))+"\n")
+    # f.write("current:\n")
+    # f.write(str(current)+"\n")
+    # f.write("neighbors:\n")
+    # f.write(','.join(map(lambda i: str(i),neighbors))+"\n")
+    # f.write("distribution:\n")
+    # f.write(','.join(map(lambda i: str(i),pr))+"\n")
     last_node = len(G)-1
     str_ngb = list(map(lambda n: str(n), neighbors))
     chosen = int(choice(str_ngb, 1, pr)[0])
     #chosen = choice(neighbors, 1, pr)
     print("chosen:")
     print(chosen)
-    f.write("chosen:\n")
-    f.write(str(chosen)+"\n")
+    # f.write("chosen:\n")
+    # f.write(str(chosen)+"\n")
 
     #toint = int(chosen[0])
     #print(toint)
@@ -47,5 +47,5 @@ def make_n_step(G, current, n):
         print(nxt)
         path.append(nxt)
         curr = nxt
-    f.close()                                       ##to remove
+    f.close()
     return path
