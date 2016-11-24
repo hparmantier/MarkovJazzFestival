@@ -41,5 +41,5 @@ def intra_neo_from_nx(nx,graph_db):
             if 'weight' in eattr:
                 weight = eattr['weight']
                 next = 0 if (v == len(nx)-1) else v+1
-                print("("+str(u)+","+str(v)+") similarity := "+str(weight))
+                print("("+str(u)+","+str(v+1)+") similarity := "+str(weight))
                 create_rel(graph_db,str(u),str(next),str(weight)) ## str(u), str(v) -> u,v

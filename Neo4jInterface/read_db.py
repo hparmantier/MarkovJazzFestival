@@ -1,4 +1,9 @@
-import write_db as conn
+import os
+import sys
+helper = '/home/hparmantier/Montreux Analytics/Git/MarkovJazzFestival'
+sys.path.append(os.path.abspath(helper))
+import Neo4jInterface.write_db as conn
+#import write_db as conn
 import networkx as nx
 import matplotlib.pyplot as plt
 
