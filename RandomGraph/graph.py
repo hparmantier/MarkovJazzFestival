@@ -5,35 +5,34 @@ import librosa
 
 def affinity_matrix(song):
     y, sr = librosa.load(song)
-    oenv = librosa.onset.onset_strength(y=y, sr=sr, hop_length=512)
-    tempo = librosa.beat.estimate_tempo(oenv, sr=sr, hop_length=512)
+    tempo, beats = librosa.beat.beat_track(y, sr, hop_length=512)
 
-    bps = tempo/60 
-    beat_length = int(np.round(sr/bps)) # number of samples in a beat
-
-    l = y.shape[0]
-    border = np.ceil(0.1*beat_length) # we will use it to attenuate borders of each sample
+    nbeats = len(beats)
 
     # tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr, hop_length=512)
     # beat_samples = librosa.frames_to_samples(beat_frames)
 
     #Attenuation of borders of samples
 
-    for i in range(0,l):
-        beat_index = np.mod(i,beat_length)
-        if beat_index<border:
-            y[i] *= beat_index/border
-        elif beat_index>(beat_length-beat_index):
-            y[i] *= (beat_length-beat_index)/border
+    # for i in range(0,l):
+    #     beat_index = np.mod(i,beat_length)
+    #     if beat_index<border:
+    #         y[i] *= beat_index/border
+    #     elif beat_index>(beat_length-beat_index):
+    #         y[i] *= (beat_length-beat_index)/border
 
-    n_sample = beat_length*np.ceil(y.size/beat_length) # number of samples of y we keep
+    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=12, hop_length=512)
+    chroma = librosa.feature.chroma_stft(y=y, sr=sr, hop_length=512)
 
-    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=12, hop_length=beat_length)
-    chroma = librosa.feature.chroma_stft(y=y, sr=sr, hop_length=beat_length)
+    features = np.concatenate((mfcc, chroma), axis=0)
 
-    feature = np.concatenate((mfcc, chroma), axis=0)
+    beat_features = np.zeros((24,nbeats))
+    beat_features[:,0] = np.mean(features[:,:beats[0]], axis=1)
 
-    R = librosa.segment.recurrence_matrix(feature, mode='affinity', width=5, sym=True)
+    for i in range(1, nbeats-1):
+        beat_features[:,i] = np.mean(features[:,beats[i]:beats[i+1]], axis=1)
+
+    R = librosa.segment.recurrence_matrix(beat_features, mode='affinity', width=5, sym=True)
     c = 0
     argmaxs = [R[i].argmax() for i in range(0, len(R))]
     maxs = [R[i][argmaxs[i]] for i in range(0, len(R))]
@@ -45,14 +44,14 @@ def affinity_matrix(song):
         m = maxs[i]
         if(m>0.5):
             R2[i][i] = 1.5-m
-            R2[i][j] = m-0.5
+            R2[j][i] = m-0.5
 
         else:
             R2[i][i] = 1 
 
     R2[-1][0] = 1
 
-    return R2
+    return R
 
 
 def build_graph(recc_matrix):
