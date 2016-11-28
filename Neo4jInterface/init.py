@@ -1,12 +1,49 @@
+import os
+import sys
+helper = '/home/hparmantier/Montreux Analytics/Git/MarkovJazzFestival'
+sys.path.append(os.path.abspath(helper))
+import RandomGraph.graph as builder
 import write_db as writer
 import read_db as reader
+import networkx as nx
+import RandomGraph.SimulateRW as simulator
 
 
-file = '/home/hparmantier/Montreux Analytics/Git/MarkovJazzFestival/Data/creep_directed.gpickle'
-nx = writer.load_nx(file)
-# for e in nx.edges(data=True):
-#     print(e)
-# print(len(nx.edges(data=True)))
-reader.cool_draw(nx)
-graph_db = writer.connect_to_db()
-writer.intra_neo_from_nx(nx,graph_db)
+
+def nodes2edges(nodes):
+    edges = []
+    i = 1
+    while i != len(nodes)-1:
+        edges.append((nodes[i-1], nodes[i]))
+        i += 1
+    return edges
+
+def init2(folder, musics):
+    for music in musics:
+        print("########### "+music+" ############")
+        song = folder+music+'.mp3'
+        print("Building graph networkx...")
+        G = builder.build_graph(builder.affinity_matrix(song))
+        print("Done.")
+        print("Saving graph networkx...")
+        to_save = folder+music+'.gpickle'
+        nx.write_gpickle(G, tp_save)
+        print("Done.")
+        print("Calculating path...")
+        node_path = sim.generate_permutation_nx(G, n)
+        print("Done.")
+        edge_path = nodes2edges(node_path)
+        print("Updating edges...")
+        
+
+
+
+
+
+
+
+def init1(file):
+    nx = writer.load_nx(file)
+    reader.cool_draw(nx)
+    graph_db = writer.connect_to_db()
+    writer.intra_neo_from_nx(nx,graph_db)
