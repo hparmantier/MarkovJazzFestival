@@ -57,14 +57,13 @@ def play_permutation_bis(audio, permut, beat_nb):
 	return song._spawn(np.asarray(song_permuted).tostring())
 
 def play_path(song, path):
+	nsteps = len(path)
 	y, sr = librosa.load(song)
-	oenv = librosa.onset.onset_strength(y=y, sr=sr, hop_length=512)
-	tempo = librosa.beat.estimate_tempo(oenv, sr=sr, hop_length=512)
-	bps = tempo/60
-	beat_length = int(np.round(sr/bps))
-	y_perm = y
-	for i in range(0, int(np.floor(len(y)/beat_length))):
-		y_perm[i*beat_length:(i+1)*beat_length] = y[path[i]*beat_length:(path[i]+1)*beat_length]
+	tempo, beats = librosa.beat.beat_track(y, sr, hop_length=512)
+	beats = [0] + beats
+	y_perm = []
+	for i in range(nsteps):
+		y_perm = np.concatenate( (y_perm, y[ 512*beats[ path[i] ] : 512*beats[ path[i]+1 ] ]), axis=0 )
 
 	return y_perm
 
