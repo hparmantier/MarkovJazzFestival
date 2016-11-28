@@ -8,7 +8,7 @@ import read_db as reader
 import networkx as nx
 import RandomGraph.SimulateRW as simulator
 
-
+musics = ['opa', 'creep', 'gangnamstyle', 'mildhighclub']
 
 def nodes2edges(nodes):
     edges = []
@@ -23,18 +23,19 @@ def init2(folder, musics):
         print("########### "+music+" ############")
         song = folder+music+'.mp3'
         print("Building graph networkx...")
-        G = builder.build_graph(builder.affinity_matrix(song))
+        graph_file = folder+'/graphs/graph_'+music+'.gpickle'
+        G = builder.song2graph(song, graph_file)
         print("Done.")
-        print("Saving graph networkx...")
-        to_save = folder+music+'.gpickle'
-        nx.write_gpickle(G, tp_save)
-        print("Done.")
-        print("Calculating path...")
-        node_path = sim.generate_permutation_nx(G, n)
-        print("Done.")
-        edge_path = nodes2edges(node_path)
-        print("Updating edges...")
-        
+        print("Simulate RandomWalk")
+        sim_file = folder+'/simulations/sim_'+music+'.wav'
+        builder.simulate(song, G, sim_file)
+        print("Done")
+        # print("Calculating path...")
+        # node_path = sim.generate_permutation_nx(G, n)
+        # print("Done.")
+        # edge_path = nodes2edges(node_path)
+        # print("Updating edges...")
+
 
 
 
