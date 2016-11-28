@@ -84,3 +84,35 @@ def show_matrix(R):
     plt.xlabel('Samples (beats)')
     plt.ylabel('Samples (beats)')
     plt.show()
+
+def song2graph(song, filename):
+    
+    recc_mat = gr.affinity_matrix(song)
+
+    G = gr.build_graph(recc_mat)
+    new = nx.DiGraph()
+    threshold = 0.7
+
+    for n in G:
+        edges = list(filter(lambda e: e[0]==n, G.edges(n, data=True)))
+        print(edges)
+        edges = list(filter(lambda e: e[2]['weight'] > threshold,edges))
+    
+        if len(edges) != 0:
+        
+            weights = list(map(lambda e: e[2]['weight'], edges))
+            maxi = max(weights)
+            n_ = list(filter(lambda e: e[2]['weight']==maxi,edges))[0][1]
+            new.add_edge(n,n_,weight=maxi)
+
+    new.add_edge(n,n,weight=1.0)
+    nx.write_gpickle(new, filename)
+
+    return new
+
+def simulate(song, graph, filename):
+    path = sim.generate_permutation_nx(graph)
+    y, sr = librosa.load(song)
+    y_perm = sim.play_path(song, path)
+    librosa.output.write_wav(filename, y_perm, sr)
+

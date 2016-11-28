@@ -4,6 +4,8 @@ import networkx as nx
 import graph as gr
 
 recc_mat = gr.affinity_matrix('../data/opa.mp3')
+
+
 G = gr.build_graph(recc_mat)
 new = nx.DiGraph()
 threshold = 0.7
