@@ -1,6 +1,10 @@
+import os
+import sys
+sys.path.append(os.path.abspath('..'))
 import numpy as np
 import networkx as nx
 import librosa
+import SimulateRW as sim
 
 
 def affinity_matrix(song):
@@ -32,26 +36,14 @@ def affinity_matrix(song):
     for i in range(1, nbeats-1):
         beat_features[:,i] = np.mean(features[:,beats[i]:beats[i+1]], axis=1)
 
-    R = librosa.segment.recurrence_matrix(beat_features, mode='affinity', width=5, sym=True)
-    c = 0
-    argmaxs = [R[i].argmax() for i in range(0, len(R))]
-    maxs = [R[i][argmaxs[i]] for i in range(0, len(R))]
-
-    R2 = np.zeros((len(R), len(R)))
-
-    for i in range(0, len(R)):
-        j = argmaxs[i]
-        m = maxs[i]
-        if(m>0.5):
-            R2[i][i] = 1.5-m
-            R2[j][i] = m-0.5
-
-        else:
-            R2[i][i] = 1 
-
-    R2[-1][0] = 1
-
-    return R
+    R = librosa.segment.recurrence_matrix(beat_features, mode='affinity', width=4, sym=True)
+    
+    R2 = R
+    for i in range(2,len(R)-2):
+        for j in range(2,len(R)-2):
+            if ((R[i-2,j-2] == 0.0) or (R[i-1,j-1] == 0.0)) and ((R[i+1, j+1] == 0.0) or (R[i+2, j+2] == 0.0)):
+                R2[i,j] = 0.0
+    return R2
 
 
 def build_graph(recc_matrix):
@@ -86,10 +78,10 @@ def show_matrix(R):
     plt.show()
 
 def song2graph(song, filename):
-    
-    recc_mat = gr.affinity_matrix(song)
 
-    G = gr.build_graph(recc_mat)
+    recc_mat = affinity_matrix(song)
+
+    G = build_graph(recc_mat)
     new = nx.DiGraph()
     threshold = 0.7
 
@@ -105,7 +97,8 @@ def song2graph(song, filename):
             n_ = list(filter(lambda e: e[2]['weight']==maxi,edges))[0][1]
             new.add_edge(n,n_,weight=maxi)
 
-    new.add_edge(n,n,weight=1.0)
+        new.add_edge(n,n,weight=1.0)
+
     nx.write_gpickle(new, filename)
 
     return new
@@ -115,4 +108,5 @@ def simulate(song, graph, filename):
     y, sr = librosa.load(song)
     y_perm = sim.play_path(song, path)
     librosa.output.write_wav(filename, y_perm, sr)
+    return path
 

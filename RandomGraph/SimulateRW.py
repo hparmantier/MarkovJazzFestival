@@ -60,9 +60,11 @@ def play_path(song, path):
 	nsteps = len(path)
 	y, sr = librosa.load(song)
 	tempo, beats = librosa.beat.beat_track(y, sr, hop_length=512)
-	beats = [0] + beats
+	beats = np.insert(beats, 0, 0)
+	beats = np.append(beats, int(np.ceil(len(y)/512)))
 	y_perm = []
 	for i in range(nsteps):
+		
 		y_perm = np.concatenate( (y_perm, y[ 512*beats[ path[i] ] : 512*beats[ path[i]+1 ] ]), axis=0 )
 
 	return y_perm
