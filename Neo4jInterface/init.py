@@ -38,8 +38,6 @@ def init2(folder, musics):
 
 
 
-
-
 def init1(file):
     nx = writer.load_nx(file)
     reader.cool_draw(nx)
