@@ -30,11 +30,13 @@ def init2(folder, musics):
         sim_file = folder+'/simulations/sim_'+music+'.wav'
         builder.simulate(song, G, sim_file)
         print("Done")
-        # print("Calculating path...")
-        # node_path = sim.generate_permutation_nx(G, n)
-        # print("Done.")
-        # edge_path = nodes2edges(node_path)
-        # print("Updating edges...")
+        """
+        print("Pushing graph to Neo4j...")
+        edge_path = nodes2edges(path)
+        neo = writer.connect_to_db()
+        writer.intra_neo_from_nx(G,edge_path,neo, music)
+        print("Done")
+        """
 
 
 

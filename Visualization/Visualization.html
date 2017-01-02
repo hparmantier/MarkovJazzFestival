@@ -1,0 +1,376 @@
+<style>
+@import url(http://fonts.googleapis.com/css?family=Raleway:300);
+@import url(http://fonts.googleapis.com/css?family=Nunito:300);
+
+body { font-family: "Raleway", sans-serif; font-size: 26px; text-align: center;}
+a    { text-decoration: none; text-align: center;}
+p    { }
+sup  { font-family: "Nunito"; font-size: 36px; font-weight: 100; line-height: 55px; text-align: center;}
+
+
+.button
+{
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-align: center;
+  color: #000080;
+
+  font-size: 15px;
+  font-family: "Nunito", sans-serif;
+  font-weight: 300;
+
+  margin: 5em auto;
+
+  position: absolute;
+  top:0; right:0; bottom:0; left:0;
+
+  padding: 20px 0;
+  width: 150px;
+  height:10px;
+
+  background: #000080;
+  border: 1px solid #000080;
+  color: #FFF;
+  overflow: hidden;
+
+  transition: all 0.5s;
+}
+
+.button:hover, .button:active
+{
+  text-decoration: none;
+  color: #000080;
+  border-color: #000080;
+  background: #FFF;
+}
+
+.button span
+{
+  display: inline-block;
+  position: relative;
+  padding-right: 0;
+
+  transition: padding-right 0.5s;
+}
+
+.button span:after
+{
+  content: ' ';
+  position: absolute;
+  top: 0;
+  right: -18px;
+  opacity: 0;
+  width: 10px;
+  height: 10px;
+  margin-top: -10px;
+
+  background: rgba(0, 0, 0, 0);
+  border: 3px solid #FFF;
+  border-top: none;
+  border-right: none;
+
+  transition: opacity 0.5s, top 0.5s, right 0.5s;
+  transform: rotate(-45deg);
+}
+
+.button:hover span, .button:active span
+{
+  padding-right: 30px;
+}
+
+.button:hover span:after, .button:active span:after
+{
+  transition: opacity 0.5s, top 0.5s, right 0.5s;
+  opacity: 1;
+  border-color: #000080;
+  right: 0;
+  top: 50%;
+}
+
+.style-1{
+  position:absolute;
+  text-align: center
+}
+.style-1 input[type="text"] {
+
+  padding: 10px;
+  border: solid 1px #fff;
+  box-shadow: inset 1px 1px 2px 0 #707070;
+  transition: box-shadow 0.3s;
+  -webkit-box-flex:1;
+      -webkit-flex:1;
+          -ms-flex:1;
+              flex:1;
+
+}
+.style-1 input[type="text"]:focus,
+.style-1 input[type="text"].focus {
+  box-shadow: inset 1px 1px 2px 0 #c9c9c9;
+}
+
+
+
+.node {
+  font: 300 11px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  fill: #f0f0f4; /*fff for white, see-> body background (bgcolor)*/
+}
+
+.node:hover {
+  fill: #000;
+}
+
+.link {
+  stroke: steelblue;
+  stroke-opacity: .4;
+  fill: none;
+  pointer-events: none;
+}
+
+.node:hover,
+.node--source,
+.node--target {
+  font-weight: 700;
+}
+
+.node--source {
+  fill: #2ca02c;
+}
+
+.node--target {
+  fill: #d62728;
+}
+
+.link--source,
+.link--target {
+  stroke-opacity: 1;
+  stroke-width: 2px;
+}
+
+.link--source {
+  stroke: #d62728;
+}
+
+.link--target {
+  stroke: #2ca02c;
+}
+</style>
+
+
+<html>
+
+<head>
+<title>Markov Jazz Festival</title>
+<link rel="shortcut icon" href="./favicon.ico">
+<script src="http://code.jquery.com/jquery-2.1.3.min.js"></script>
+<script src="https://d3js.org/d3.v3.min.js"></script>
+</head>
+
+<body bgcolor="#f0f0f4">
+  <!--<center>-->
+  <script type="text/javascript">
+    function build_json(data) {
+      var to_build = {};
+      data.forEach(function (row)
+      {
+        if (row[0] in to_build){
+          to_build[row[0]].push(Number(row[1]));
+        }
+        else{
+          to_build[row[0]] = [Number(row[1])];
+        }
+      });
+      built = [];
+      $.each(to_build, function (node, dest){
+        built.push({"name": node, "imports": dest});
+      });
+      return built;
+    }
+
+    function cypher() {
+      //while busy
+      $('#messageArea').html('<h3>(loading)</h3>');
+      //MATCH (a:Beat{music:'creep'})-[:SIMILARTO]->(b:Beat{music:'creep'}) RETURN a.name as node, b.name as neighbor
+      //get neo4j data
+      $('#outputArea').html('')
+      $.ajax({
+        url: "http://localhost:7474/db/data/transaction/commit",
+        type: 'POST',
+        data: JSON.stringify({ "statements": [{ "statement": "MATCH (a:Beat{music:'"+$('#cypher-in').val()+"'})-[:SIMILARTO]->(b:Beat{music:'"+$('#cypher-in').val()+"'}) RETURN a.name as node, b.name as neighbor" }] }),
+        contentType: 'application/json',
+        accept: 'application/json; charset=UTF-8',
+        success: function () {},
+        error: function (jqXHR, textStatus, errorThrown) { $('#messageArea').html('<h3>' + textStatus + ' : ' + errorThrown + '</h3>' )},
+        complete: function () {}
+      }).then(function(data){
+        //d3 code using data
+        //$('#outputArea').html("<p>Query: '"+ $('#cypher-in').val() +"'</p>");
+        $('#messageArea').html('');
+        var d3_data = [];
+        $.each(data.results[0].data, function (k, v) { d3_data.push(String(v.row).split(",")); });
+
+        //debug print
+        var built = build_json(d3_data);
+        console.log(JSON.stringify(built));
+
+        //d3 visualization
+        var diameter = 960,
+            radius = diameter / 2,
+            innerRadius = radius - 120;
+
+        var cluster = d3.layout.cluster()
+            .size([360, innerRadius])
+            .sort(null)
+            .value(function(d) { return d.size; });
+
+        var bundle = d3.layout.bundle();
+
+        var line = d3.svg.line.radial()
+            .interpolate("bundle")
+            .tension(0) //0.85: soft. 0: straight
+            .radius(function(d) { return d.y; })
+            .angle(function(d) { return d.x / 180 * Math.PI; });
+
+
+
+        var svg = d3.select("#outputArea").append("svg")
+            .attr("width", diameter)
+            .attr("height", diameter)
+          .append("g")
+            .attr("transform", "translate(" + radius + "," + radius + ")");
+
+        //svg.text("Random Graph of "+$('#cypher-in').val());
+
+        var link = svg.append("g").selectAll(".link"),
+            node = svg.append("g").selectAll(".node");
+            //curved = svg.append("g").selectAll(".link");
+
+
+        var nodes = cluster.nodes(packageHierarchy(built)),
+            links = packageImports(nodes);
+
+        link = link
+            .data(bundle(links))
+          .enter().append("path")
+            .each(function(d) { d.source = d[0], d.target = d[d.length - 1]; })
+            .attr("class", "link")
+            .attr("d", line);
+
+        node = node
+            .data(nodes.filter(function(n) { return !n.children; }))
+          .enter().append("text")
+            .attr("class", "node")
+            .attr("dy", ".31em")
+            .attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + (d.y + 8) + ",0)" + (d.x < 180 ? "" : "rotate(180)"); })
+            .style("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
+            .text(function(d) { return d.key; })
+            .on("mouseover", mouseovered)
+            .on("mouseout", mouseouted);
+
+
+        function mouseovered(d) {
+          node
+              .each(function(n) { n.target = n.source = false; });
+
+          link
+              .classed("link--target", function(l) { if (l.target === d) return l.source.source = true; })
+              .classed("link--source", function(l) { if (l.source === d) return l.target.target = true; })
+            .filter(function(l) { return l.target === d || l.source === d; })
+              .each(function() { this.parentNode.appendChild(this); });
+
+          node
+              .classed("node--target", function(n) { return n.target; })
+              .classed("node--source", function(n) { return n.source; });
+        }
+
+
+        function mouseouted(d) {
+          link
+              .classed("link--target", false)
+              .classed("link--source", false);
+
+          node
+              .classed("node--target", false)
+              .classed("node--source", false);
+        }
+
+        d3.select(self.frameElement).style("height", diameter + "px");
+
+        function packageHierarchy(classes) {
+          var map = {};
+
+          function find(name, data) {
+            var node = map[name], i;
+            if (!node) {
+              node = map[name] = data || {name: name, children: []};
+              if (name.length) {
+                node.parent = find(name.substring(0, i = name.lastIndexOf(".")));
+                node.parent.children.push(node);
+                node.key = name.substring(i + 1);
+              }
+            }
+            return node;
+          }
+
+          classes.forEach(function(d) {
+            find(d.name, d);
+          });
+
+          return map[""];
+        }
+
+        function packageImports(nodes) {
+          var map = {},
+              imports = [];
+
+          // Compute a map from name to node.
+          nodes.forEach(function(d) {
+            map[d.name] = d;
+          });
+
+          // For each import, construct a link from the source to target node.
+          nodes.forEach(function(d) {
+            if (d.imports) d.imports.forEach(function(i) {
+              imports.push({source: map[d.name], target: map[i]});
+            });
+          });
+
+          return imports;
+        }
+
+
+    });
+    };
+  </script>
+  <h1 style="color:#000080;">Music Visualization</h1>
+  <p style="color:#000080; font-size:14px;">
+    Welcome to the Markov Jazz Festival application.
+    It provides a visualization support of the Probabilistic graph of a given song. <br />
+    For more information, follow the project
+    <a href="https://lts2.epfl.ch/blog/mjf-students/" style="color:#ffa500;">progress.</a>
+    <br />
+    <br />
+    Built at EPFL, LTS2  by Adrien Basille and Hector Parmantier.
+  </p>
+  <p>
+  <div id="messageArea"></div>
+  <ul class="input-list style-1 clearfix">
+  <p>
+        <input type="text" list="songs" placeholder="Enter music title" name="cypher" id="cypher-in" />
+        <datalist id="songs">
+          <option value="planche"/>
+          <option value="creep" />
+          <option value="gangnamstyle" />
+          <option value="together" />
+          <option value="tesselation" />
+          <option value="barrett" />
+        </datalist>
+        <a href="#" class="button" name="post cypher" onclick="cypher();">
+          <span>Query</span>
+        </a>
+  <p>
+  </ul>
+  <div id="outputArea"></div>
+  <p>
+  <!--</center>-->
+</body>
+</html>

@@ -48,6 +48,7 @@
 
 </style>
 <body>
+  <p><center><font size="16" color="grey">Welcome to the MarkovJazzFestival player! </font></center></p>
 <script src="https://d3js.org/d3.v3.min.js"></script>
 <script>
 
@@ -74,10 +75,11 @@ var svg = d3.select("body").append("svg")
   .append("g")
     .attr("transform", "translate(" + radius + "," + radius + ")");
 
+
 var link = svg.append("g").selectAll(".link"),
     node = svg.append("g").selectAll(".node");
 
-d3.json("graph.json", function(error, classes) {
+d3.json("together.json", function(error, classes) {
   if (error) throw error;
 
   var nodes = cluster.nodes(packageHierarchy(classes)),
