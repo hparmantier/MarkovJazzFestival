@@ -12,6 +12,7 @@ class IntraGraph():
 
     def __init__(self, song_file, threshold=0.7):
         self.song_file = song_file
+        ##self.title = os.path.splitext(os.path.split(self.song_file)[1])[0]
         self.threshold = threshold
         self.y, self.sr = librosa.load(self.song_file)
         tempo, beats = librosa.beat.beat_track(self.y, self.sr, hop_length=512)
@@ -41,7 +42,7 @@ class IntraGraph():
         nsteps = len(path)
         y_perm = []
         for i in range(nsteps):
-            
+
             y_perm = np.concatenate( (y_perm, self.y[ 512*self.beats[ path[i] ] : 512*self.beats[ path[i]+1 ] ]), axis=0 )
 
         return y_perm
@@ -54,12 +55,12 @@ class IntraGraph():
         new = nx.DiGraph() # directed graph
 
         for n in G:
-            edges = list(filter(lambda e: e[0]==n, G.edges(n, data=True))) 
+            edges = list(filter(lambda e: e[0]==n, G.edges(n, data=True)))
             #print(edges)
             edges = list(filter(lambda e: e[2]['weight'] > self.threshold,edges))
-        
+
             if len(edges) != 0:
-            
+
                 weights = list(map(lambda e: e[2]['weight'], edges))
                 maxi = max(weights)
                 n_ = list(filter(lambda e: e[2]['weight']==maxi,edges))[0][1]
@@ -86,7 +87,7 @@ class IntraGraph():
         chroma = librosa.feature.chroma_stft(y=self.y, sr=self.sr, hop_length=512)
 
         features = np.concatenate((mfcc, chroma), axis=0)
-        
+
         beat_features = np.zeros((24,self.nbeats))
         for i in range(self.nbeats-1):
             beat_features[:,i] = np.mean(features[:,self.beats[i]:self.beats[i+1]], axis=1)
@@ -97,9 +98,9 @@ class IntraGraph():
 
         R = librosa.segment.recurrence_matrix(self.fv, width=width, metric=metric, sym=True, mode=mode)
         self.R = R
-        
+
         R2 = R
-        
+
         ## We filter the matrix to highlight diagonal components
         if filtering:
             for i in range(2,len(R)-2):
@@ -109,7 +110,7 @@ class IntraGraph():
                     #if ((R[i-2,j-2] == 0.0) or (R[i-1,j-1] == 0.0)) and ((R[i+1, j+1] == 0.0) or (R[i+2, j+2] == 0.0)):
                         R2[i,j] = 0.0
 
-                           
+
         return R2
 
 
@@ -125,6 +126,3 @@ class IntraGraph():
         plt.ylabel('Beats')
         #plt.colorbar()
         plt.show()
-
-
-    

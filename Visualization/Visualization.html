@@ -11,7 +11,7 @@ sup  { font-family: "Nunito"; font-size: 36px; font-weight: 100; line-height: 55
 .button
 {
   text-transform: uppercase;
-  letter-spacing: 2px; 
+  letter-spacing: 2px;
   text-align: center;
   color: #000080;
 
@@ -196,7 +196,7 @@ sup  { font-family: "Nunito"; font-size: 36px; font-weight: 100; line-height: 55
         options += opt;
         //console.log(opt);
       }
-      options += '<option value="together" />'
+      //options += '<option value="together" />'
       document.getElementById('songs').innerHTML = options;
     });
 
@@ -242,10 +242,17 @@ sup  { font-family: "Nunito"; font-size: 36px; font-weight: 100; line-height: 55
 
 
         //set audio to queried music
-        var audio = $('#myaudio');
+        //var audio = $('#myaudio');
         var q = $('#cypher-in').val()+'.mp3';
-        $('#mp3source').attr("src", q);
-        audio.load(); //load song from updated source
+        src = '<source id="mp3source" src="'+q+'" type="audio/mpeg"> </source>';
+        console.log(src);
+        document.getElementById('myaudio').innerHTML = src;
+
+        //console.log(q);
+        //$('#mp3source').attr("src", q);
+        //<source id="mp3source" src="together.mp3" type"audio/mpeg"></source>
+
+        //audio.load(); //load song from updated source
 
 
         var d3_data = [];
@@ -312,7 +319,7 @@ sup  { font-family: "Nunito"; font-size: 36px; font-weight: 100; line-height: 55
         var beat_duration;
         $.getJSON(edges, function(json){
           edge_queue = json["array"];
-          beat_duration = json["beat_duration"];
+          beat_duration = json["beat_duration"]*1000;
         });
 
 
@@ -417,7 +424,7 @@ sup  { font-family: "Nunito"; font-size: 36px; font-weight: 100; line-height: 55
   <button type="button" class="player" id="start">&#9658</button>
   <button type="button" class="player" id="stop">&#9632</button>
   <audio id="myaudio" type="audio/mpeg">
-    <source id="mp3source" src="together.mp3" type"audio/mpeg"></source>
+  <!--  <source id="mp3source" src="together.mp3" type"audio/mpeg"></source>-->
   </audio>
   <div id="outputArea"></div>
   <p>

@@ -10,7 +10,6 @@ import networkx as nx
 import SimulateRW as simulator
 
 ################################################################################
-folder = '/home/hparmantier/Montreux Analytics/Data/'
 
 def nodes2edges(nodes):
     edges = []
@@ -22,17 +21,22 @@ def nodes2edges(nodes):
 
 def init():
     #musics = [os.path.splitext(f)[0] for f in os.listdir(folder)]
-    musics = ['together']
+    folder = '/home/hparmantier/Montreux Analytics/Git/MarkovJazzFestival/Data/'
+    musics = ['wall', 'billiejean']
     for i, music in enumerate(musics):
         print("########### "+music+" ############")
         print("########### "+str(i+1)+"/"+str(len(musics))+" #########")
         intra = builder.IntraGraph(folder+music+'.mp3')
-        path = intra.simulate(save=True)
+        path = intra.simulate(save=True, filename=music+'.wav')
         edge_path = nodes2edges(path)
+        d = {"array": edge_path}##
+        d["beat_duration"] = intra.beat_duration##
+        save2json(d,music)##
         neo = writer.connect_to_db()
         print("Pushing to Neo4j...")
         writer.intra_neo_from_nx(intra.G, edge_path, neo, music)
         print("Done")
+
 
 def save2json(arr, f):
     folder = '/home/hparmantier/Montreux Analytics/Git/MarkovJazzFestival/Visualization/'
@@ -42,18 +46,19 @@ def save2json(arr, f):
     f.write(js)
 
 def main():
-    music = 'together'
-    intra = builder.IntraGraph(folder+music+'.mp3') 
-    path = intra.simulate(save=True)
-    edge_path = nodes2edges(path)[::-1]
-    d = {"array": edge_path}
-    d["beat_duration"] = intra.beat_duration
-    save2json(d,music)
+    musics = ['billiejean', 'wall']
+    for music in musics:
+        folder = '/home/hparmantier/Montreux Analytics/Git/MarkovJazzFestival/Data/'
+        intra = builder.IntraGraph(folder+music+'.mp3')
+        path = intra.simulate(save=True, filename=music+'.wav')
+        edge_path = nodes2edges(path)[::-1]
+        d = {"array": edge_path}
+        d["beat_duration"] = intra.beat_duration
+        save2json(d,music)
 
-
-# def rename_files():
-#     for f in os.listdir(folder):
-#         split = os.path.splitext(f)
-#         new = split[0][6:-7]
-#         ext = split[1]
-#         os.rename(folder+f,folder+new+ext)
+def print_duration():
+    folder = '/home/hparmantier/Montreux Analytics/Git/MarkovJazzFestival/Data/'
+    musics = ['together']
+    for music in musics:
+        intra = builder.IntraGraph(folder+music+'.mp3')
+        print(intra.beat_duration)
