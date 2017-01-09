@@ -22,17 +22,17 @@ def push_rel(n1,n2,w,neo):
 def create_node(graph_db, index, music):
     print(index)
     cypher = graph_db.cypher
-    cypher.execute("CREATE (b:Beat{name:{i}, music:{m}})", i=index, m=music)#index -> name pour affichage db
+    cypher.execute("CREATE (b:Beat{name:toInt({i}), music:{m}})", i=index, m=music)#index -> name pour affichage db
 
-def create_rel(graph_db,u,v,w):
+def create_rel(graph_db,music, u,v,w, in_path):
     cypher = graph_db.cypher
-    statement = "MATCH (u1:Beat {name:toInt({i1}), music:{m}}), (u2:Beat {name:toInt({i2}), music:{m}}) CREATE (u1)-[:SIMILARTO{similarity: toFloat({w})}]->(u2)"
-    cypher.execute(statement, i1=u, i2=v, m="Creep", w=w) ## add weight in string format which then converted to float in db
-
+    visited = '0' if (in_path=="False") else '1'
+    statement = "MATCH (u1:Beat {name:toInt({i1}), music:{m}}), (u2:Beat {name:toInt({i2}), music:{m}}) CREATE (u1)-[:SIMILARTO{similarity: toFloat({w}), visited:{visited}}]->(u2)"
+    cypher.execute(statement, i1=u, i2=v, m=music, w=w, visited=visited)
 
 
 def intra_neo_from_nx(nx,edge_path,graph_db, music):
-    print('###########Nodes creations #############')
+    print('########### Nodes creations #############')
     for n in nx : create_node(graph_db, str(n), music) ## str(n) -> n
 
     print('###### Edges/Relationships creations ######')
@@ -40,6 +40,13 @@ def intra_neo_from_nx(nx,edge_path,graph_db, music):
         weight = pr['weight']
         #in_path = (pr['in_path'] == 1)
         next = 0 if (v == len(nx)-1) else v+1
-        in_path = ((u in edge_path.keys()) and (next in edge_path[u]))
-        print("("+str(u)+","+str(next)+") similarity := "+str(weight) + ', in_path='+str(in_path))
-        create_rel(graph_db,music, str(u),str(next),str(weight), in_path) ## str(u), str(v) -> u,v
+        inp=in_path(u,v,edge_path)
+        print("("+str(u)+","+str(next)+") similarity := "+str(weight) + ', in_path='+str(inp))
+        create_rel(graph_db,music, str(u),str(next),str(weight), inp) ## str(u), str(v) -> u,v
+
+def in_path(u,v, edge_path):
+    has_u = list(filter(lambda e: e[0]==u , edge_path))
+    for e1,e2 in has_u:
+        if (e2==v):
+            return True
+    return False

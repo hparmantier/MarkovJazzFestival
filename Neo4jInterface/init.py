@@ -1,14 +1,16 @@
 import os
 import sys
-helper = '/home/hparmantier/Montreux Analytics/Git/MarkovJazzFestival'
+import json
+helper = '/home/hparmantier/Montreux Analytics/Git/MarkovJazzFestival/RandomGraph'
 sys.path.append(os.path.abspath(helper))
-import RandomGraph.graph as builder
+import intra as builder
 import write_db as writer
 import read_db as reader
 import networkx as nx
-import RandomGraph.SimulateRW as simulator
+import SimulateRW as simulator
 
-musics = ['opa', 'creep', 'gangnamstyle', 'mildhighclub']
+################################################################################
+folder = '/home/hparmantier/Montreux Analytics/Data/'
 
 def nodes2edges(nodes):
     edges = []
@@ -18,30 +20,40 @@ def nodes2edges(nodes):
         i += 1
     return edges
 
-def init2(folder, musics):
-    for music in musics:
+def init():
+    #musics = [os.path.splitext(f)[0] for f in os.listdir(folder)]
+    musics = ['together']
+    for i, music in enumerate(musics):
         print("########### "+music+" ############")
-        song = folder+music+'.mp3'
-        print("Building graph networkx...")
-        graph_file = folder+'/graphs/graph_'+music+'.gpickle'
-        G = builder.song2graph(song, graph_file)
-        print("Done.")
-        print("Simulate RandomWalk")
-        sim_file = folder+'/simulations/sim_'+music+'.wav'
-        builder.simulate(song, G, sim_file)
-        print("Done")
-        """
-        print("Pushing graph to Neo4j...")
+        print("########### "+str(i+1)+"/"+str(len(musics))+" #########")
+        intra = builder.IntraGraph(folder+music+'.mp3')
+        path = intra.simulate(save=True)
         edge_path = nodes2edges(path)
         neo = writer.connect_to_db()
-        writer.intra_neo_from_nx(G,edge_path,neo, music)
+        print("Pushing to Neo4j...")
+        writer.intra_neo_from_nx(intra.G, edge_path, neo, music)
         print("Done")
-        """
+
+def save2json(arr, f):
+    folder = '/home/hparmantier/Montreux Analytics/Git/MarkovJazzFestival/Visualization/'
+    out = folder+f+'_path.json'
+    js = json.dumps(arr,out)
+    f=open(out,'w')
+    f.write(js)
+
+def main():
+    music = 'together'
+    intra = builder.IntraGraph(folder+music+'.mp3') 
+    path = intra.simulate(save=True)
+    edge_path = nodes2edges(path)[::-1]
+    d = {"array": edge_path}
+    d["beat_duration"] = intra.beat_duration
+    save2json(d,music)
 
 
-
-def init1(file):
-    nx = writer.load_nx(file)
-    reader.cool_draw(nx)
-    graph_db = writer.connect_to_db()
-    writer.intra_neo_from_nx(nx,graph_db)
+# def rename_files():
+#     for f in os.listdir(folder):
+#         split = os.path.splitext(f)
+#         new = split[0][6:-7]
+#         ext = split[1]
+#         os.rename(folder+f,folder+new+ext)

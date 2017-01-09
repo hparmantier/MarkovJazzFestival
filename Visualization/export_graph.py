@@ -28,11 +28,21 @@ def RG(music):
     G = reader.stream_built_nx(music)
     plt.figure(figsize=(12,12))
     pos = nx.circular_layout(G)
-    nx.draw_networkx_nodes(G, pos, G.nodes(), alpha=0.8, node_size=60, with_labels=True, node_color=str(0.3))
+    nx.draw_networkx_nodes(G, pos, G.nodes(),alpha=0.8,node_size=60, with_labels=True, node_color=str(0.3))
     nx.draw_networkx_edges(G, pos, alpha=0.4)
     plt.axis('off')
     plt.title("Random Graph: 'Together'")
     plt.show()
 
+def musics2json():
+    folder = '/home/hparmantier/Montreux Analytics/Data/musics/'
+    d = {"datalist": []}
+    for f in os.listdir(folder):
+        name = os.path.splitext(f)[0]
+        d["datalist"].append(name)
+    out = json_file+'datalist.json'
+    js = json.dumps(d, out)
+    f = open(out, 'w')
+    f.write(js)
 
-RG("together")
+musics2json()
