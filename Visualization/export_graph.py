@@ -28,7 +28,7 @@ def RG(music):
     G = reader.stream_built_nx(music)
     plt.figure(figsize=(12,12))
     pos = nx.circular_layout(G)
-    nx.draw_networkx_nodes(G, pos, G.nodes(),alpha=0.8,node_size=60, with_labels=True, node_color=str(0.3))
+    nx.draw_networkx_nodes(G, pos, G.nodes(), alpha=0.8, node_size=60, with_labels=True, node_color=str(0.3))
     nx.draw_networkx_edges(G, pos, alpha=0.4)
     plt.axis('off')
     plt.title("Random Graph: 'Together'")

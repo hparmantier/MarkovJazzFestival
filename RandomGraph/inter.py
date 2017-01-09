@@ -1,5 +1,6 @@
 import os
 import sys
+from numpy.random import choice
 sys.path.append(os.path.abspath('..'))
 import GraphClustering.spectralClustering as sc
 import numpy as np
@@ -14,14 +15,26 @@ import pdb
 
 class InterGraph():
 
-    def __init__(self, directory='../Data/'):
+    def __init__(self, directory='../Data/', threshold=0.5, max_songs=20):
         self.directory = directory
+        self.threshold = threshold
+        self.max_songs = max_songs
         self.song_seg = []
         self.aff = self.build_aff_matrix()
         self.G = self.songs2graph()
+        self.im = self.infinite_medley()
 
-    def simulate(self, save=True, filename='test.wav'):
-        path = sim.generate_permutation_nx(self.G)
+    def simulate_medley(self, save=False, filename='medley.wav'):
+        path = sim.generate_permutation_nx(self.im, inter=True)
+        y_perm = self.play_path(path)
+        if save:
+            print('save')
+            librosa.output.write_wav(filename, y_perm, self.songs[0].sr)
+
+        return path
+
+    def simulate_inter(self, save=False, filename='test.wav'):
+        path = sim.generate_permutation_nx(self.G, inter=True)
         y_perm = self.play_path(path)
         if save:
             print('save')
@@ -46,7 +59,9 @@ class InterGraph():
         fv = [] #feature vector
         song_limits = [0]
         songs = []
+        all_beats = []
         c=0
+        shift = 0
         for filename in os.listdir(self.directory):
             if filename.endswith(".mp3"):
                 print(filename)
@@ -62,13 +77,18 @@ class InterGraph():
                     self.song_seg.append((c,i))
                 song_graph.seg = seg
                 songs.append(song_graph)
+                all_beats.append(seg+shift*np.ones(len(seg)))
+                shift += song_graph.nbeats
                 c+=1
+                if c>self.max_songs:
+                    break
                 
 
         featvec = np.transpose(np.asarray(fv))
         #pdb.set_trace()
         aff = librosa.segment.recurrence_matrix(featvec, width=1, metric='euclidean', sym=True, mode='affinity')
         self.songs = songs
+        self.all_beats = [item for sublist in all_beats for item in sublist]
 
         return aff
 
@@ -134,7 +154,7 @@ class InterGraph():
             filename = 'wall_%d.wav' % i 
             librosa.output.write_wav(filename, song_graph.y[512*song_graph.beats[seg_beats[i]] : 512*song_graph.beats[seg_beats[i+1]]], song_graph.sr)
 
-    def songs2graph(self, threshold=0.6):
+    def songs2graph(self):
         dt = [('weight', float)]
         sim_mat=np.matrix(self.aff,dtype=dt)
         G = nx.from_numpy_matrix(sim_mat)
@@ -144,7 +164,7 @@ class InterGraph():
         for n in G:
             edges = list(filter(lambda e: e[0]==n, G.edges(n, data=True))) 
             #print(edges)
-            edges = list(filter(lambda e: self.song_seg[e[0]][0] != self.song_seg[e[1]][0] and e[2]['weight'] > threshold, edges))
+            edges = list(filter(lambda e: self.song_seg[e[0]][0] != self.song_seg[e[1]][0] and e[2]['weight'] > self.threshold, edges))
         
             if len(edges) != 0:
             
@@ -157,7 +177,21 @@ class InterGraph():
 
         return new
 
-    
+    def infinite_medley(self):
+        G = nx.DiGraph()
+        shift = 0
+        for song in self.songs:
+            for e in song.G.edges(data=True):
+                G.add_node(e[0]+shift, music=song.song_file)
+                G.add_node(e[1]+shift, music=song.song_file)
+                G.add_edge(e[0]+shift, e[1]+shift, weight=e[2]['weight'])
+            shift += len(song.G)
+        shift = 0
+        for e in self.G:
+            G.add_edge(self.all_beats[e[0]+1], self.all_beats[e[1]])
+
+        return G
+
     def show_matrix(self, S):
         S_show = -(S-1)
         #S_show = S

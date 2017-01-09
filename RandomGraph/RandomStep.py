@@ -6,7 +6,7 @@ f = open(p_file, 'w')
 
 ##TODO remove write in file
 ##IMPLEMENTATION MADE FOR LINKS U->U AND NOT TEMPORAL U->U+1
-def make_step(G, current):
+def make_step(G, current, inter=False):
     print(current)
     edges = list(filter(lambda e: e[0]==current, G.edges(current, data=True)))
     #print(list(edges))
@@ -35,14 +35,19 @@ def make_step(G, current):
 
     #toint = int(chosen[0])
     #print(toint)
-    return 0 if chosen == last_node else  int(chosen + 1)
+
+    if inter:
+        next = int(chosen)
+    else:
+        next = int(chosen + 1)
+    return 0 if chosen == last_node else  next
 
 
-def make_n_step(G, current, n):
+def make_n_step(G, current, n, inter=False):
     path = []
     curr = current
     for i in range(n):
-        nxt = make_step(G, curr)
+        nxt = make_step(G, curr, inter)
         print("next:")
         print(nxt)
         path.append(nxt)

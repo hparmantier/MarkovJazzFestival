@@ -6,6 +6,7 @@ import networkx as nx
 import librosa
 import SimulateRW as sim
 import pdb
+from collections import Counter
 
 class IntraGraph():
 
@@ -14,18 +15,25 @@ class IntraGraph():
         self.threshold = threshold
         self.y, self.sr = librosa.load(self.song_file)
         tempo, beats = librosa.beat.beat_track(self.y, self.sr, hop_length=512)
+        beat_length = [beats[0]]
+        for i in range(1, len(beats)):
+            beat_length.append(beats[i]-beats[i-1])
+        mean_beat_length = np.mean(beat_length)
+        std_beat_length = np.std(beat_length)
+        self.beat_duration = mean_beat_length*512/self.sr
+        self.std_duration = std_beat_length*512/self.sr
         beats = np.insert(beats, 0, 0)
         self.beats = np.append(beats, int(np.ceil(len(self.y)/512)))
         self.nbeats = len(beats)
-        self.fv = self.beat_features() 
+        self.fv = self.beat_features()
         self.S = self.similarity_matrix()
         self.G = self.song2graph()
 
-    def simulate(self, save=True, filename='test.wav'):
+    def simulate(self, save=False, filename='test.wav'):
         path = sim.generate_permutation_nx(self.G)
         y_perm = self.play_path(path)
         if save:
-            librosa.output.write_wav(filename, y_perm, sr)
+            librosa.output.write_wav(filename, y_perm, self.sr)
 
         return path
 
@@ -88,12 +96,17 @@ class IntraGraph():
     def similarity_matrix(self, mode='affinity', width=5, filtering=True, metric='euclidean'):
 
         R = librosa.segment.recurrence_matrix(self.fv, width=width, metric=metric, sym=True, mode=mode)
+        self.R = R
+        
         R2 = R
+        
         ## We filter the matrix to highlight diagonal components
         if filtering:
             for i in range(2,len(R)-2):
                 for j in range(2,len(R)-2):
-                    if ((R[i-2,j-2] == 0.0) or (R[i-1,j-1] == 0.0)) and ((R[i+1, j+1] == 0.0) or (R[i+2, j+2] == 0.0)):
+                    c = Counter([np.sign(R[i+t,j+t]) for t in range(-2,3)])
+                    if c.most_common(1)[0][0] == 0:
+                    #if ((R[i-2,j-2] == 0.0) or (R[i-1,j-1] == 0.0)) and ((R[i+1, j+1] == 0.0) or (R[i+2, j+2] == 0.0)):
                         R2[i,j] = 0.0
 
                            

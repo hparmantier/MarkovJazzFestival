@@ -19,7 +19,7 @@ def generate_permutation(music):
 	path = path + walker.make_n_step(G, path[0], n)
 	return path
 
-def generate_permutation_nx(G):
+def generate_permutation_nx(G, inter=False):
 	n = len(G)
 	path = [0]
 	path = path + walker.make_n_step(G, path[0], n)
