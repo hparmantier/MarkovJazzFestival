@@ -244,7 +244,8 @@ sup  { font-family: "Nunito"; font-size: 36px; font-weight: 100; line-height: 55
         //set audio to queried music
         //var audio = $('#myaudio');
         var q = $('#cypher-in').val()+'.mp3';
-        src = '<source id="mp3source" src="'+q+'" type="audio/mpeg"> </source>';
+        var fq = './audios/'+q;
+        src = '<source id="mp3source" src="'+fq+'" type="audio/mpeg"> </source>';
         console.log(src);
         document.getElementById('myaudio').innerHTML = src;
 
@@ -314,7 +315,8 @@ sup  { font-family: "Nunito"; font-size: 36px; font-weight: 100; line-height: 55
 
 
         /////////////////////////////////////////////////////////////////////////
-        var edges = $('#cypher-in').val()+"_path.json";
+        var edges = './paths/'+$('#cypher-in').val()+"_path.json";
+        console.log(edges);
         var edge_queue;
         var beat_duration;
         $.getJSON(edges, function(json){
@@ -394,7 +396,7 @@ sup  { font-family: "Nunito"; font-size: 36px; font-weight: 100; line-height: 55
     };
   </script>
 
-  <h1 style="color:#000080;">Music Visualization</h1>
+  <h1 style="color:#000080;">Markov Jazz Festival</h1>
   <p style="color:#000080; font-size:14px;">
     Welcome to the Markov Jazz Festival application.
     It provides a visualization support of the Probabilistic graph of a given song. <br />
